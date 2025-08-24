@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Tragro Pte. Ltd. - AI-Powered Commodity Trading Solutions. Expert consulting, custom software development, and strategic business solutions for commodity trading companies.">
+    <meta name="keywords" content="commodity trading, AI consulting, software development, business consulting, Singapore, trading automation">
+    <meta name="robots" content="index, follow">
     <title>Tragro Pte. Ltd. - AI-Powered Commodity Trading Solutions</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -21,13 +27,24 @@
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+            --shadow-heavy: 0 20px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
             color: var(--text-dark);
             overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Performance optimizations */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
 
         /* Header & Navigation */
@@ -40,12 +57,13 @@
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(20px);
             transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .nav {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 1rem 2rem;
+            padding: 1rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -56,12 +74,14 @@
             font-weight: 700;
             color: var(--text-light);
             text-decoration: none;
+            letter-spacing: -0.5px;
         }
 
         .nav-links {
             display: flex;
             list-style: none;
             gap: 2rem;
+            margin: 0;
         }
 
         .nav-links a {
@@ -70,6 +90,8 @@
             font-weight: 500;
             transition: color 0.3s ease;
             position: relative;
+            padding: 0.5rem 0;
+            font-size: 0.95rem;
         }
 
         .nav-links a:hover {
@@ -96,6 +118,55 @@
             color: var(--text-light);
             font-size: 1.5rem;
             cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .mobile-menu:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .mobile-nav {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 0;
+        }
+
+        .mobile-nav.active {
+            display: block;
+        }
+
+        .mobile-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .mobile-nav li {
+            margin: 0;
+        }
+
+        .mobile-nav a {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .mobile-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--primary-color);
+            color: var(--primary-color);
         }
 
         /* Hero Section */
@@ -106,6 +177,7 @@
             align-items: center;
             position: relative;
             overflow: hidden;
+            padding-top: 80px;
         }
 
         .hero::before {
@@ -122,21 +194,22 @@
         .hero-content {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 2rem 1.5rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4rem;
+            gap: 3rem;
             align-items: center;
             position: relative;
             z-index: 2;
         }
 
         .hero-text h1 {
-            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-size: clamp(2.2rem, 5vw, 4rem);
             font-weight: 800;
             color: var(--text-light);
             margin-bottom: 1.5rem;
             line-height: 1.1;
+            letter-spacing: -1px;
         }
 
         .hero-text .highlight {
@@ -147,9 +220,10 @@
         }
 
         .hero-text p {
-            font-size: 1.25rem;
+            font-size: clamp(1.1rem, 2vw, 1.25rem);
             color: #cbd5e1;
             margin-bottom: 2rem;
+            line-height: 1.7;
         }
 
         .cta-buttons {
@@ -166,20 +240,24 @@
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
             border: none;
             cursor: pointer;
+            font-size: 1rem;
+            min-height: 56px;
+            white-space: nowrap;
         }
 
         .btn-primary {
             background: var(--gradient-1);
             color: white;
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            box-shadow: var(--shadow-medium);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+            box-shadow: var(--shadow-heavy);
         }
 
         .btn-secondary {
@@ -195,11 +273,16 @@
 
         .hero-visual {
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .floating-cards {
             position: relative;
             height: 400px;
+            width: 100%;
+            max-width: 500px;
         }
 
         .floating-card {
@@ -211,6 +294,26 @@
             color: var(--text-light);
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: float 6s ease-in-out infinite;
+            box-shadow: var(--shadow-light);
+            min-width: 180px;
+        }
+
+        .floating-card h4 {
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .floating-card p {
+            font-size: 0.9rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .floating-card i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
         }
 
         .floating-card:nth-child(1) {
@@ -245,7 +348,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1.5rem;
         }
 
         .section-header {
@@ -258,18 +361,20 @@
             font-weight: 700;
             margin-bottom: 1rem;
             color: var(--text-dark);
+            letter-spacing: -0.5px;
         }
 
         .section-header p {
-            font-size: 1.2rem;
+            font-size: clamp(1rem, 2vw, 1.2rem);
             color: #64748b;
             max-width: 600px;
             margin: 0 auto;
+            line-height: 1.7;
         }
 
         .services-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 2rem;
         }
 
@@ -277,10 +382,11 @@
             background: white;
             padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-light);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            border: 1px solid #f1f5f9;
         }
 
         .service-card::before {
@@ -303,7 +409,7 @@
 
         .service-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            box-shadow: var(--shadow-heavy);
         }
 
         .service-icon {
@@ -335,11 +441,13 @@
             font-weight: 700;
             margin-bottom: 1rem;
             color: var(--text-dark);
+            line-height: 1.3;
         }
 
         .service-card p {
             color: #64748b;
             margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
         .service-features {
@@ -352,12 +460,14 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.95rem;
         }
 
         .service-features li::before {
             content: '✓';
             color: var(--primary-color);
             font-weight: bold;
+            font-size: 1.1rem;
         }
 
         /* About Section */
@@ -378,12 +488,15 @@
             font-size: clamp(2rem, 4vw, 3rem);
             font-weight: 700;
             margin-bottom: 2rem;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
         }
 
         .about-text p {
             font-size: 1.1rem;
             color: #cbd5e1;
             margin-bottom: 1.5rem;
+            line-height: 1.7;
         }
 
         .stats {
@@ -402,11 +515,13 @@
             font-weight: 700;
             color: var(--primary-color);
             display: block;
+            line-height: 1;
         }
 
         .stat-label {
             color: #cbd5e1;
             font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
         .about-visual {
@@ -417,6 +532,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .about-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
         }
 
         /* Contact Section */
@@ -435,7 +559,8 @@
             background: white;
             padding: 2.5rem;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-light);
+            border: 1px solid #f1f5f9;
         }
 
         .form-group {
@@ -447,22 +572,28 @@
             margin-bottom: 0.5rem;
             font-weight: 600;
             color: var(--text-dark);
+            font-size: 0.95rem;
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 1rem;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
+            font-family: inherit;
+            background: white;
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
             border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
         .contact-info h3 {
@@ -474,7 +605,7 @@
 
         .contact-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -488,6 +619,22 @@
             align-items: center;
             justify-content: center;
             color: white;
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        .contact-item-content strong {
+            display: block;
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .whatsapp-note {
+            color: #059669;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-top: 0.25rem;
         }
 
         /* Footer */
@@ -508,6 +655,7 @@
             font-size: 1.2rem;
             font-weight: 700;
             margin-bottom: 1rem;
+            color: var(--text-light);
         }
 
         .footer-section p,
@@ -515,10 +663,12 @@
             color: #cbd5e1;
             text-decoration: none;
             line-height: 1.8;
+            font-size: 0.95rem;
         }
 
         .footer-section a:hover {
             color: var(--primary-color);
+            transition: color 0.3s ease;
         }
 
         .footer-bottom {
@@ -526,10 +676,30 @@
             padding-top: 2rem;
             text-align: center;
             color: #94a3b8;
+            font-size: 0.9rem;
         }
 
-        /* Responsive Design */
+        /* Mobile Responsive Design */
+        @media (max-width: 1024px) {
+            .hero-content {
+                gap: 2rem;
+            }
+            
+            .floating-cards {
+                height: 350px;
+            }
+            
+            .floating-card {
+                min-width: 160px;
+                padding: 1.25rem;
+            }
+        }
+
         @media (max-width: 768px) {
+            .nav {
+                padding: 1rem;
+            }
+            
             .nav-links {
                 display: none;
             }
@@ -538,22 +708,101 @@
                 display: block;
             }
 
+            .hero {
+                padding-top: 100px;
+            }
+
             .hero-content {
                 grid-template-columns: 1fr;
                 text-align: center;
+                gap: 2rem;
+                padding: 1rem;
+            }
+
+            .hero-text {
+                order: 1;
+            }
+
+            .hero-visual {
+                order: 2;
+            }
+
+            .floating-cards {
+                height: 300px;
+                transform: scale(0.9);
+            }
+
+            .floating-card {
+                min-width: 140px;
+                padding: 1rem;
+            }
+
+            .floating-card h4 {
+                font-size: 1rem;
+            }
+
+            .floating-card p {
+                font-size: 0.8rem;
             }
 
             .about-content,
             .contact-content {
                 grid-template-columns: 1fr;
+                gap: 2rem;
             }
 
             .stats {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
             }
 
             .cta-buttons {
                 justify-content: center;
+                gap: 0.75rem;
+            }
+
+            .btn {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.95rem;
+                min-height: 48px;
+            }
+
+            .services {
+                padding: 4rem 0;
+            }
+
+            .about {
+                padding: 4rem 0;
+            }
+
+            .contact {
+                padding: 4rem 0;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .section-header {
+                margin-bottom: 3rem;
+            }
+
+            .service-card {
+                padding: 2rem;
+            }
+
+            .contact-form {
+                padding: 2rem;
+            }
+
+            .contact-item {
+                align-items: flex-start;
+            }
+
+            .contact-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
             }
         }
 
@@ -564,10 +813,79 @@
 
             .stats {
                 grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat {
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 15px;
+            }
+
+            .floating-card {
+                min-width: 130px;
+                padding: 0.875rem;
+            }
+
+            .hero-content {
+                padding: 0.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .service-card {
+                padding: 1.5rem;
+            }
+
+            .contact-form {
+                padding: 1.5rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                padding: 0.875rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                text-align: center;
             }
         }
 
-        /* Animations */
+        /* Performance and Accessibility Improvements */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Loading and animation optimizations */
         .fade-in {
             opacity: 0;
             transform: translateY(30px);
@@ -589,56 +907,80 @@
         .hero-visual {
             animation-delay: 0.3s;
         }
+
+        /* Focus styles for accessibility */
+        .btn:focus,
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .nav-links a:focus,
+        .mobile-nav a:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <nav class="nav">
-            <a href="#" class="logo">TRAGRO</a>
+    <header class="header" role="banner">
+        <nav class="nav" role="navigation" aria-label="Main navigation">
+            <a href="#home" class="logo" aria-label="Tragro Pte. Ltd. Homepage">TRAGRO</a>
             <ul class="nav-links">
                 <li><a href="#home">Home</a></li>
                 <li><a href="#services">Services</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
-            <div class="mobile-menu">
-                <i class="fas fa-bars"></i>
-            </div>
+            <button class="mobile-menu" aria-label="Toggle mobile menu" aria-expanded="false">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+            <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#services">Services</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
         </nav>
     </header>
 
     <!-- Hero Section -->
-    <section id="home" class="hero">
+    <section id="home" class="hero" role="main">
         <div class="hero-content">
             <div class="hero-text">
                 <h1>AI-Powered <span class="highlight">Commodity Trading</span> Solutions</h1>
                 <p>Revolutionizing commodity trading with cutting-edge AI consulting, custom software development, and strategic business solutions. From traditional consulting to advanced automation.</p>
                 <div class="cta-buttons">
-                    <a href="#services" class="btn btn-primary">
-                        <i class="fas fa-rocket"></i>
+                    <a href="#services" class="btn btn-primary" aria-label="Explore our solutions">
+                        <i class="fas fa-rocket" aria-hidden="true"></i>
                         Explore Solutions
                     </a>
-                    <a href="#contact" class="btn btn-secondary">
-                        <i class="fas fa-comments"></i>
+                    <a href="#contact" class="btn btn-secondary" aria-label="Start consultation">
+                        <i class="fas fa-comments" aria-hidden="true"></i>
                         Start Consultation
                     </a>
                 </div>
             </div>
-            <div class="hero-visual">
+            <div class="hero-visual" role="presentation">
                 <div class="floating-cards">
                     <div class="floating-card">
-                        <i class="fas fa-robot"></i>
+                        <i class="fas fa-robot" aria-hidden="true"></i>
                         <h4>AI Integration</h4>
                         <p>Smart automation solutions</p>
                     </div>
                     <div class="floating-card">
-                        <i class="fas fa-chart-line"></i>
+                        <i class="fas fa-chart-line" aria-hidden="true"></i>
                         <h4>Trading Analytics</h4>
                         <p>Data-driven insights</p>
                     </div>
                     <div class="floating-card">
-                        <i class="fas fa-mobile-alt"></i>
+                        <i class="fas fa-mobile-alt" aria-hidden="true"></i>
                         <h4>Custom Apps</h4>
                         <p>Tailored software solutions</p>
                     </div>
@@ -650,14 +992,14 @@
     <!-- Services Section -->
     <section id="services" class="services">
         <div class="container">
-            <div class="section-header">
+            <header class="section-header">
                 <h2>Comprehensive Solutions for Modern Trading</h2>
                 <p>From AI-powered automation to strategic consulting, we deliver end-to-end solutions that transform how commodity trading companies operate and compete.</p>
-            </div>
+            </header>
             <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-brain"></i>
+                <article class="service-card">
+                    <div class="service-icon" role="presentation">
+                        <i class="fas fa-brain" aria-hidden="true"></i>
                     </div>
                     <h3>AI & Automation Consulting</h3>
                     <p>Transform your operations with intelligent automation and AI-driven insights tailored for commodity trading.</p>
@@ -668,10 +1010,10 @@
                         <li>Workflow optimization</li>
                         <li>ROI analysis and planning</li>
                     </ul>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-code"></i>
+                </article>
+                <article class="service-card">
+                    <div class="service-icon" role="presentation">
+                        <i class="fas fa-code" aria-hidden="true"></i>
                     </div>
                     <h3>Custom Software Development</h3>
                     <p>Bespoke applications and platforms designed specifically for your commodity trading needs and workflows.</p>
@@ -682,10 +1024,10 @@
                         <li>Real-time data systems</li>
                         <li>Cloud-based solutions</li>
                     </ul>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-handshake"></i>
+                </article>
+                <article class="service-card">
+                    <div class="service-icon" role="presentation">
+                        <i class="fas fa-handshake" aria-hidden="true"></i>
                     </div>
                     <h3>Strategic Business Consulting</h3>
                     <p>Expert guidance on team building, market strategies, and operational excellence in commodity trading.</p>
@@ -696,7 +1038,7 @@
                         <li>Brokerage services</li>
                         <li>Growth strategy development</li>
                     </ul>
-                </div>
+                </article>
             </div>
         </div>
     </section>
@@ -712,7 +1054,7 @@
                     <p>Whether you're looking to streamline operations with AI, develop custom software solutions, or enhance your trading strategies, we provide the expertise and technology to accelerate your success.</p>
                     <div class="stats">
                         <div class="stat">
-                            <span class="stat-number">50+</span>
+                            <span class="stat-number">3+</span>
                             <span class="stat-label">Successful Projects</span>
                         </div>
                         <div class="stat">
@@ -729,8 +1071,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="about-visual">
-                    <i class="fas fa-globe-asia" style="font-size: 6rem; color: rgba(99, 102, 241, 0.3);"></i>
+                <div class="about-visual" role="presentation">
+                    <img src="https://raw.githubusercontent.com/Atgurul/Tragro-website/main/Dikaiosp_210819_6963.jpg" 
+                         alt="Singapore skyline representing Tragro's base of operations" 
+                         class="about-image"
+                         loading="lazy">
                 </div>
             </div>
         </div>
@@ -739,20 +1084,20 @@
     <!-- Contact Section -->
     <section id="contact" class="contact">
         <div class="container">
-            <div class="section-header">
+            <header class="section-header">
                 <h2>Let's Transform Your Business Together</h2>
                 <p>Ready to revolutionize your commodity trading operations? Get in touch with our experts today.</p>
-            </div>
+            </header>
             <div class="contact-content">
                 <div class="contact-form">
-                    <form>
+                    <form role="form" aria-label="Contact form">
                         <div class="form-group">
-                            <label for="name">Full Name</label>
-                            <input type="text" id="name" name="name" required>
+                            <label for="name">Full Name <span class="sr-only">(required)</span></label>
+                            <input type="text" id="name" name="name" required aria-required="true">
                         </div>
                         <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" required>
+                            <label for="email">Email Address <span class="sr-only">(required)</span></label>
+                            <input type="email" id="email" name="email" required aria-required="true">
                         </div>
                         <div class="form-group">
                             <label for="company">Company</label>
@@ -760,7 +1105,7 @@
                         </div>
                         <div class="form-group">
                             <label for="service">Service Interest</label>
-                            <select id="service" name="service" style="width: 100%; padding: 1rem; border: 2px solid #e2e8f0; border-radius: 10px;">
+                            <select id="service" name="service">
                                 <option value="">Select a service</option>
                                 <option value="ai-consulting">AI & Automation Consulting</option>
                                 <option value="software-development">Custom Software Development</option>
@@ -772,48 +1117,55 @@
                             <label for="message">Message</label>
                             <textarea id="message" name="message" rows="5" placeholder="Tell us about your project or requirements"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%;">
-                            <i class="fas fa-paper-plane"></i>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" aria-label="Send message">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
                             Send Message
                         </button>
+                        <p style="margin-top: 1rem; font-size: 0.85rem; color: #64748b; text-align: center;">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            Currently a demo form. To make functional, integrate with email service or backend to send responses to info@tragrow.com
+                        </p>
                     </form>
                 </div>
                 <div class="contact-info">
                     <h3>Get In Touch</h3>
                     <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
+                        <div class="contact-icon" role="presentation">
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                         </div>
-                        <div>
-                            <strong>Address</strong><br>
+                        <div class="contact-item-content">
+                            <strong>Address</strong>
                             68 Circular Road, #02-01<br>
                             Singapore 049422
                         </div>
                     </div>
                     <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-phone"></i>
+                        <div class="contact-icon" role="presentation">
+                            <i class="fas fa-phone" aria-hidden="true"></i>
                         </div>
-                        <div>
-                            <strong>Phone</strong><br>
-                            +65-9391-4013
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div>
-                            <strong>Email</strong><br>
-                            info@tragrow.com
+                        <div class="contact-item-content">
+                            <strong>Phone</strong>
+                            <a href="tel:+6593914013" style="color: inherit; text-decoration: none;">+65-9391-4013</a>
+                            <div class="whatsapp-note">
+                                <i class="fab fa-whatsapp" aria-hidden="true"></i> Also available on WhatsApp
+                            </div>
                         </div>
                     </div>
                     <div class="contact-item">
-                        <div class="contact-icon">
-                            <i class="fas fa-clock"></i>
+                        <div class="contact-icon" role="presentation">
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
                         </div>
-                        <div>
-                            <strong>Business Hours</strong><br>
+                        <div class="contact-item-content">
+                            <strong>Email</strong>
+                            <a href="mailto:info@tragrow.com" style="color: inherit; text-decoration: none;">info@tragrow.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon" role="presentation">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                        </div>
+                        <div class="contact-item-content">
+                            <strong>Business Hours</strong>
                             Monday - Friday: 9:00 AM - 5:00 PM<br>
                             Singapore Time (SGT)
                         </div>
@@ -824,7 +1176,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -842,8 +1194,8 @@
                     <h4>Company</h4>
                     <p><a href="#about">About Us</a></p>
                     <p><a href="#contact">Contact</a></p>
-                    <p><a href="#">Privacy Policy</a></p>
-                    <p><a href="#">Terms of Service</a></p>
+                    <p><a href="#" onclick="alert('Privacy Policy coming soon'); return false;">Privacy Policy</a></p>
+                    <p><a href="#" onclick="alert('Terms of Service coming soon'); return false;">Terms of Service</a></p>
                 </div>
                 <div class="footer-section">
                     <h4>Connect</h4>
@@ -855,48 +1207,145 @@
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2025 Tragro Pte. Ltd. All rights reserved.</p>
+                <p style="margin-top: 0.5rem; color: #059669; font-size: 0.9rem;">
+                    <i class="fab fa-whatsapp" aria-hidden="true"></i> 
+                    +65-9391-4013 is also available on WhatsApp for instant communication
+                </p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Smooth scrolling for navigation links
+        // Performance optimization: Use passive event listeners where appropriate
+        const passiveSupported = (() => {
+            let passiveSupported = false;
+            try {
+                const options = Object.defineProperty({}, 'passive', {
+                    get: function() {
+                        passiveSupported = true;
+                    }
+                });
+                window.addEventListener('test', null, options);
+            } catch(err) {}
+            return passiveSupported;
+        })();
+
+        // Smooth scrolling for navigation links with performance optimization
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+                    const headerHeight = document.querySelector('.header').offsetHeight;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
                     });
                 }
             });
         });
 
-        // Header background change on scroll
-        window.addEventListener('scroll', () => {
+        // Optimized header background change on scroll with throttling
+        let ticking = false;
+        function updateHeader() {
             const header = document.querySelector('.header');
             if (window.scrollY > 100) {
                 header.style.background = 'rgba(15, 23, 42, 0.98)';
             } else {
                 header.style.background = 'rgba(15, 23, 42, 0.95)';
             }
+            ticking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(updateHeader);
+                ticking = true;
+            }
+        }, passiveSupported ? { passive: true } : false);
+
+        // Enhanced mobile menu functionality
+        const mobileMenuBtn = document.querySelector('.mobile-menu');
+        const mobileNav = document.querySelector('.mobile-nav');
+        let isMenuOpen = false;
+
+        function toggleMobileMenu() {
+            isMenuOpen = !isMenuOpen;
+            mobileNav.classList.toggle('active', isMenuOpen);
+            mobileMenuBtn.setAttribute('aria-expanded', isMenuOpen);
+            
+            // Update icon
+            const icon = mobileMenuBtn.querySelector('i');
+            icon.className = isMenuOpen ? 'fas fa-times' : 'fas fa-bars';
+            
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+        // Close mobile menu when clicking on links
+        document.querySelectorAll('.mobile-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (isMenuOpen) {
+                    toggleMobileMenu();
+                }
+            });
         });
 
-        // Form submission
-        document.querySelector('form').addEventListener('submit', function(e) {
+        // Close mobile menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isMenuOpen) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isMenuOpen && !mobileMenuBtn.contains(e.target) && !mobileNav.contains(e.target)) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Enhanced form submission with validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Thank you for your message! We will get back to you within 24 hours.');
+            
+            // Basic form validation
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!name || !email) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Sending...';
+            submitBtn.disabled = true;
+            
+            // Simulate form submission (replace with actual form handling)
+            setTimeout(() => {
+                alert('Thank you for your message! We will get back to you within 24 hours. Note: This is currently a demo form - to make it functional, connect it to your email service or backend.');
+                form.reset();
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 1500);
         });
 
-        // Mobile menu toggle (basic implementation)
-        document.querySelector('.mobile-menu').addEventListener('click', function() {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
-        });
-
-        // Add animation classes on scroll
+        // Intersection Observer for fade-in animations with performance optimization
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -906,14 +1355,81 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('fade-in');
+                    // Unobserve after animation to improve performance
+                    observer.unobserve(entry.target);
                 }
             });
         }, observerOptions);
 
-        // Observe elements for animations
-        document.querySelectorAll('.service-card, .about-text, .contact-form').forEach(el => {
+        // Observe elements for animations with improved selector
+        document.querySelectorAll('.service-card, .about-text, .contact-form, .stat').forEach(el => {
             observer.observe(el);
         });
+
+        // Add resize event listener for responsive adjustments
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            // Close mobile menu on resize to desktop
+            if (window.innerWidth > 768 && isMenuOpen) {
+                toggleMobileMenu();
+            }
+            
+            // Debounce resize events
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Any resize-specific logic can go here
+            }, 250);
+        }, passiveSupported ? { passive: true } : false);
+
+        // Preload critical resources
+        function preloadResources() {
+            const links = [
+                'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+            ];
+            
+            links.forEach(href => {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.as = 'style';
+                link.href = href;
+                document.head.appendChild(link);
+            });
+        }
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', preloadResources);
+
+        // Add focus trap for mobile menu accessibility
+        function trapFocus(element) {
+            const focusableElements = element.querySelectorAll(
+                'a[href], button:not([disabled]), textarea:not([disabled]), input[type="text"]:not([disabled]), input[type="radio"]:not([disabled]), input[type="checkbox"]:not([disabled]), select:not([disabled])'
+            );
+            const firstFocusableElement = focusableElements[0];
+            const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+            element.addEventListener('keydown', (e) => {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstFocusableElement) {
+                            lastFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (document.activeElement === lastFocusableElement) {
+                            firstFocusableElement.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
+        }
+
+        // Apply focus trap to mobile menu when open
+        const mobileNavElement = document.querySelector('.mobile-nav');
+        if (mobileNavElement) {
+            trapFocus(mobileNavElement);
+        }
     </script>
 </body>
 </html>
