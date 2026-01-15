@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Comprehensive guide to RAG architecture patterns including Self-RAG, Corrective RAG, Graph RAG, chunking strategies, and vector database selection.">
+    <meta name="keywords" content="RAG, retrieval augmented generation, vector database, chunking, RAGAS, Self-RAG, Graph RAG, Pinecone, Weaviate">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Tragro Pte. Ltd.">
+    <title>Production RAG Architecture Patterns | Tragro Research</title>
+    <link rel="canonical" href="https://tragrow.com/research/production-rag-architecture.html">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #0f172a;
+            --accent-color: #f59e0b;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--text-light);
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--primary-color); }
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 1.5rem 4rem;
+        }
+        .article-header { margin-bottom: 3rem; }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .article-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .article-date {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+        .article-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 3rem 0 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .article-content h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 2rem 0 1rem;
+        }
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+        .article-content p {
+            margin-bottom: 1.5rem;
+            color: #374151;
+        }
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        .article-content li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .article-content strong {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .article-content code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+        .article-content pre {
+            background: var(--secondary-color);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+        .article-content pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #64748b;
+        }
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+        .article-content th, .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .article-content th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .article-content tr:hover { background: #f8fafc; }
+        .info-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .info-box-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .warning-box-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 0.5rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: gap 0.3s ease;
+        }
+        .back-link:hover { gap: 0.75rem; }
+        .footer {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+        .footer-content p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-container { padding: 100px 1rem 3rem; }
+            .article-title { font-size: 1.75rem; }
+            .article-content { font-size: 1rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="../index.html" class="logo">TRAGRO</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Home</a></li>
+                <li><a href="../index.html#services">Services</a></li>
+                <li><a href="../index.html#about">About</a></li>
+                <li><a href="../index.html#research">Research</a></li>
+                <li><a href="../index.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-container">
+        <a href="../index.html#research" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Research
+        </a>
+
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <span class="article-tag">Academia & Research</span>
+                    <span class="article-date"><i class="fas fa-calendar-alt"></i> January 2026</span>
+                    <span class="article-date"><i class="fas fa-clock"></i> 22 min read</span>
+                </div>
+                <h1 class="article-title">Production RAG Architecture Patterns</h1>
+                <p class="article-subtitle">From simple retrieval to agentic systems: a comprehensive guide to RAG architectures, evaluation frameworks, and production best practices.</p>
+            </header>
+
+            <div class="article-content">
+                <p>Retrieval-Augmented Generation has evolved from a simple retrieve-then-generate pattern into a sophisticated family of architectures, each optimized for different use cases and quality requirements. Understanding these patterns and their tradeoffs is essential for building production-grade AI systems that deliver accurate, grounded responses.</p>
+
+                <p>This research examines eight distinct RAG architecture types, evaluation frameworks, chunking strategies, and vector database selection criteria based on peer-reviewed research and production deployments.</p>
+
+                <h2>Eight RAG Architecture Types</h2>
+
+                <h3>1. Simple RAG</h3>
+
+                <p>The foundational retrieve-then-generate pipeline remains effective for many use cases:</p>
+
+                <ol>
+                    <li>Query → Embedding</li>
+                    <li>Vector Search → Top-K Retrieval</li>
+                    <li>Context Assembly → LLM Generation</li>
+                </ol>
+
+                <p><strong>Typical latency</strong>: 1-3 seconds. Simple RAG works well for FAQ systems and document Q&A where queries map directly to retrievable content.</p>
+
+                <h3>2. Memory RAG</h3>
+
+                <p>Memory RAG integrates conversation history for coherent multi-turn dialogue. Using patterns like <code>ConversationBufferMemory</code>, the system maintains context across interactions while still retrieving relevant documents for each query.</p>
+
+                <p>This architecture excels in customer support scenarios where understanding conversation context is essential for appropriate responses.</p>
+
+                <h3>3. Branching RAG</h3>
+
+                <p>Branching RAG implements multiple retrieval paths with parallel execution. Queries route to specialized retrievers (Q&A, summarization, factual lookup) based on intent classification.</p>
+
+                <p>Performance benchmarks show <strong>15-30% better recall</strong> than single-path approaches, though at the cost of increased infrastructure complexity.</p>
+
+                <h3>4. Adaptive RAG</h3>
+
+                <p>Adaptive RAG dynamically adjusts retrieval parameters based on query complexity. The system modifies k (number of retrieved documents), retrieval method (dense vs. sparse vs. hybrid), and re-ranking aggressiveness based on query characteristics.</p>
+
+                <p>This pattern proves particularly effective for heterogeneous corpora where different document types benefit from different retrieval strategies.</p>
+
+                <h3>5. Corrective RAG (CRAG)</h3>
+
+                <p>Yan et al. introduced CRAG in January 2024 (arXiv:2401.15884), implementing a self-correction mechanism with a lightweight retrieval evaluator that returns confidence scores.</p>
+
+                <h4>Three-Tiered Action System</h4>
+
+                <ul>
+                    <li><strong>Correct (high confidence)</strong>: Proceed with retrieved documents</li>
+                    <li><strong>Incorrect (low confidence)</strong>: Trigger web search fallback</li>
+                    <li><strong>Ambiguous (medium confidence)</strong>: Combine internal and external sources</li>
+                </ul>
+
+                <p>CRAG uses a decompose-then-recompose algorithm, breaking complex queries into sub-questions and validating each retrieval independently.</p>
+
+                <h3>6. Self-RAG</h3>
+
+                <p>Asai et al. introduced Self-RAG in October 2023 (arXiv:2310.11511), implementing self-reflection through special tokens that guide the generation process.</p>
+
+                <h4>Reflection Tokens</h4>
+
+                <ul>
+                    <li><strong>Retrieve</strong>: Should I retrieve for this segment?</li>
+                    <li><strong>IsRel</strong>: Is retrieved content relevant?</li>
+                    <li><strong>IsSup</strong>: Is generation supported by context?</li>
+                    <li><strong>IsUse</strong>: Is generation useful for the query?</li>
+                </ul>
+
+                <h4>Performance Results</h4>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Self-RAG</th>
+                            <th>Baseline</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PopQA Accuracy</td>
+                            <td><strong>55.8%</strong></td>
+                            <td>14.7% (Llama2-13B)</td>
+                        </tr>
+                        <tr>
+                            <td>Fact Verification</td>
+                            <td><strong>81%</strong></td>
+                            <td>71% (other techniques)</td>
+                        </tr>
+                        <tr>
+                            <td>Biography Factuality</td>
+                            <td><strong>80%</strong></td>
+                            <td>71% (ChatGPT)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>7. Graph RAG</h3>
+
+                <p>Microsoft introduced Graph RAG in April 2024 (arXiv:2404.16130), combining knowledge graph construction with community summarization using the Leiden algorithm.</p>
+
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-lightbulb"></i> When to Use Graph RAG</div>
+                    <p>Graph RAG excels at "What are the main themes?" queries where naive RAG fails. It's best suited for datasets in the <strong>1M+ token range</strong> requiring holistic understanding across many documents.</p>
+                </div>
+
+                <p>The approach constructs entity-relationship graphs from source documents, then uses community detection to create hierarchical summaries that can answer global questions about the corpus.</p>
+
+                <h3>8. Agentic RAG</h3>
+
+                <p>Agentic RAG represents the most sophisticated pattern, implementing agent-based retrieval with tool use, autonomous decision-making, and multi-hop reasoning across knowledge bases.</p>
+
+                <p>The agent decides when to retrieve, which sources to query, how to combine information, and when sufficient information has been gathered. This pattern enables complex research tasks that require synthesizing information from multiple sources.</p>
+
+                <h2>RAGAS Evaluation Framework</h2>
+
+                <p>RAGAS (arXiv:2309.15217) provides reference-free evaluation using LLM-based metrics, enabling automated quality assessment without ground truth labels.</p>
+
+                <h3>Core Metrics</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Measures</th>
+                            <th>Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Faithfulness</strong></td>
+                            <td>Factual consistency with context</td>
+                            <td>Claim extraction and verification</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Answer Relevancy</strong></td>
+                            <td>Pertinence to query</td>
+                            <td>Reverse-engineered question comparison</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Context Precision</strong></td>
+                            <td>Signal-to-noise ratio</td>
+                            <td>Relevant chunk ranking analysis</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Context Recall</strong></td>
+                            <td>Retrieval completeness</td>
+                            <td>Ground truth comparison (when available)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Score Interpretation</h3>
+
+                <ul>
+                    <li><strong>0.8-1.0</strong>: Excellent — production ready</li>
+                    <li><strong>0.6-0.8</strong>: Good — may need optimization</li>
+                    <li><strong>Below 0.4</strong>: Poor — requires substantial changes</li>
+                </ul>
+
+                <p>RAGAS integrates with Langfuse, Datadog, and Evidently AI for production monitoring.</p>
+
+                <h2>Chunking Strategies</h2>
+
+                <p>Chunking strategy significantly impacts retrieval quality. Benchmarks reveal substantial performance differences:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Strategy</th>
+                            <th>Accuracy</th>
+                            <th>Recall</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Page-level</td>
+                            <td>0.648</td>
+                            <td>High</td>
+                            <td>Low</td>
+                        </tr>
+                        <tr>
+                            <td>Semantic</td>
+                            <td>+9% vs baseline</td>
+                            <td>High</td>
+                            <td>High</td>
+                        </tr>
+                        <tr>
+                            <td>RecursiveCharacter (512)</td>
+                            <td>Baseline</td>
+                            <td>85-90%</td>
+                            <td>Low</td>
+                        </tr>
+                        <tr>
+                            <td>LLM-based</td>
+                            <td>Highest</td>
+                            <td>Highest</td>
+                            <td>Very High</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Best Practices</h3>
+
+                <ul>
+                    <li><strong>General use</strong>: RecursiveCharacter with 400-512 tokens and 10-20% overlap</li>
+                    <li><strong>High-value documents</strong>: Semantic chunking with embedding-based boundary detection</li>
+                    <li><strong>Structured documents</strong>: Respect document structure (headers, sections) in chunking</li>
+                </ul>
+
+                <h2>Vector Database Comparison</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Database</th>
+                            <th>Latency (p50)</th>
+                            <th>Max Scale</th>
+                            <th>Hybrid Search</th>
+                            <th>Open Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Pinecone</strong></td>
+                            <td>&lt;10ms</td>
+                            <td>Billions</td>
+                            <td>Yes (API)</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Weaviate</strong></td>
+                            <td>&lt;50ms</td>
+                            <td>Billions</td>
+                            <td>Native</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Qdrant</strong></td>
+                            <td>&lt;10ms</td>
+                            <td>Billions</td>
+                            <td>Native</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Chroma</strong></td>
+                            <td>~20ms</td>
+                            <td>Millions</td>
+                            <td>Approximate</td>
+                            <td>Yes</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Selection Framework</h3>
+
+                <ul>
+                    <li><strong>Need managed + minimal ops</strong> → Pinecone</li>
+                    <li><strong>Need hybrid search + flexibility</strong> → Weaviate or Qdrant</li>
+                    <li><strong>Prototyping/lightweight</strong> → Chroma</li>
+                </ul>
+
+                <h2>Hybrid Search Best Practices</h2>
+
+                <p>Hybrid search combines sparse (BM25) and dense (embedding) retrieval for improved recall. The recommended pipeline:</p>
+
+                <ol>
+                    <li><strong>Parallel Retrieval</strong>: BM25 (top-K) + Dense (top-K) simultaneously</li>
+                    <li><strong>Fusion</strong>: Reciprocal Rank Fusion (RRF) with k=60</li>
+                    <li><strong>Re-ranking</strong>: Cross-encoder or ColBERT (optional but recommended)</li>
+                    <li><strong>Final Selection</strong>: Top-N for generation</li>
+                </ol>
+
+                <p><strong>Performance</strong>: 15-30% better recall than either method alone, with particularly strong gains on queries mixing keyword-oriented and semantic components.</p>
+
+                <h2>Advanced Techniques (2024-2025)</h2>
+
+                <h3>HyDE (Hypothetical Document Embeddings)</h3>
+
+                <p>HyDE generates a hypothetical answer document first, then uses its embedding for retrieval. This approach significantly enhances retrieval precision for complex queries by bridging the query-document vocabulary gap.</p>
+
+                <pre><code>query → LLM generates hypothetical answer →
+embed hypothetical → retrieve similar documents</code></pre>
+
+                <h3>Query Decomposition</h3>
+
+                <p>Techniques including RQ-RAG, GMR, and RAG-Fusion decompose complex queries into simpler sub-queries. Results show <strong>35% gain in document-level precision</strong> (arXiv:2510.18633) for multi-faceted questions.</p>
+
+                <div class="warning-box">
+                    <div class="warning-box-title"><i class="fas fa-exclamation-triangle"></i> Architecture Selection Note</div>
+                    <p>No consensus exists on optimal RAG architecture — selection is highly dependent on use case, corpus size, and latency requirements. Start simple and add complexity only when metrics justify it.</p>
+                </div>
+
+                <h2>Implementation Recommendations</h2>
+
+                <ol>
+                    <li><strong>Start with Simple RAG</strong> to establish baselines before adding complexity</li>
+                    <li><strong>Implement RAGAS evaluation</strong> early to measure improvement quantitatively</li>
+                    <li><strong>Use hybrid search</strong> as a default for production systems</li>
+                    <li><strong>Consider CRAG or Self-RAG</strong> when faithfulness metrics need improvement</li>
+                    <li><strong>Deploy Graph RAG</strong> only for large corpora requiring holistic understanding</li>
+                    <li><strong>Reserve Agentic RAG</strong> for complex multi-source research tasks</li>
+                </ol>
+
+                <h2>References</h2>
+
+                <ul>
+                    <li>Asai et al. (2023). "Self-RAG: Learning to Retrieve, Generate, and Critique." arXiv:2310.11511</li>
+                    <li>Yan et al. (2024). "Corrective RAG." arXiv:2401.15884</li>
+                    <li>Edge et al. (2024). "From Local to Global: A Graph RAG Approach." arXiv:2404.16130</li>
+                    <li>Es et al. (2023). "RAGAS: Automated Evaluation of Retrieval Augmented Generation." arXiv:2309.15217</li>
+                    <li>Gao et al. (2024). "Retrieval-Augmented Generation for Large Language Models: A Survey." arXiv:2312.10997</li>
+                </ul>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Tragro Pte. Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

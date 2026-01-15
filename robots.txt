@@ -1,0 +1,6 @@
+# Robots.txt for tragrow.com
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://tragrow.com/sitemap.xml

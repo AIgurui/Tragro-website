@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Technical guide to LLM inference optimization: quantization methods (GPTQ, AWQ, GGUF), FlashAttention, PagedAttention, KV-cache management, and speculative decoding.">
+    <meta name="keywords" content="LLM inference, quantization, GPTQ, AWQ, GGUF, FlashAttention, vLLM, PagedAttention, speculative decoding, EAGLE">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Tragro Pte. Ltd.">
+    <title>LLM Inference Optimization Techniques | Tragro Research</title>
+    <link rel="canonical" href="https://tragrow.com/research/llm-inference-optimization.html">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #0f172a;
+            --accent-color: #f59e0b;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--text-light);
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--primary-color); }
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 1.5rem 4rem;
+        }
+        .article-header { margin-bottom: 3rem; }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .article-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .article-date {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+        .article-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 3rem 0 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .article-content h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 2rem 0 1rem;
+        }
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+        .article-content p {
+            margin-bottom: 1.5rem;
+            color: #374151;
+        }
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        .article-content li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .article-content strong {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .article-content code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+        .article-content pre {
+            background: var(--secondary-color);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+        .article-content pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #64748b;
+        }
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+        .article-content th, .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .article-content th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .article-content tr:hover { background: #f8fafc; }
+        .info-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .info-box-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .warning-box-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 0.5rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: gap 0.3s ease;
+        }
+        .back-link:hover { gap: 0.75rem; }
+        .footer {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+        .footer-content p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-container { padding: 100px 1rem 3rem; }
+            .article-title { font-size: 1.75rem; }
+            .article-content { font-size: 1rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="../index.html" class="logo">TRAGRO</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Home</a></li>
+                <li><a href="../index.html#services">Services</a></li>
+                <li><a href="../index.html#about">About</a></li>
+                <li><a href="../index.html#research">Research</a></li>
+                <li><a href="../index.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-container">
+        <a href="../index.html#research" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Research
+        </a>
+
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <span class="article-tag">Academia & Research</span>
+                    <span class="article-date"><i class="fas fa-calendar-alt"></i> January 2026</span>
+                    <span class="article-date"><i class="fas fa-clock"></i> 20 min read</span>
+                </div>
+                <h1 class="article-title">LLM Inference Optimization Techniques</h1>
+                <p class="article-subtitle">From quantization to speculative decoding: a comprehensive technical guide to accelerating large language model inference.</p>
+            </header>
+
+            <div class="article-content">
+                <p>The gap between training and deploying large language models has created intense focus on inference optimization. While model capabilities scale with parameters, so do computational requirements — making efficient inference essential for production viability. This research examines the full stack of optimization techniques, from weight quantization to speculative decoding.</p>
+
+                <h2>Quantization Methods</h2>
+
+                <p>Quantization reduces model size and accelerates inference by representing weights with fewer bits. Three methods dominate production deployments, each with distinct characteristics.</p>
+
+                <h3>GPTQ</h3>
+
+                <p>GPTQ implements post-training quantization using Hessian-based optimization. The algorithm sequentially quantizes weights while compensating for quantization error using second-order information.</p>
+
+                <p><strong>Key characteristics:</strong></p>
+                <ul>
+                    <li>Excels in GPU inference</li>
+                    <li><strong>~5× faster than GGUF</strong> using Marlin kernels</li>
+                    <li>Requires calibration dataset for optimal results</li>
+                    <li>Best with dedicated GPU inference</li>
+                </ul>
+
+                <h3>AWQ (Activation-aware Weight Quantization)</h3>
+
+                <p>Developed by MIT-HAN lab, AWQ protects salient weights by observing activation distributions. Rather than treating all weights equally, AWQ identifies and preserves weights that significantly impact activations.</p>
+
+                <p><strong>Performance characteristics:</strong></p>
+                <ul>
+                    <li><strong>~95% quality retention</strong> (vs GPTQ's ~90%)</li>
+                    <li>Particularly effective for instruction-tuned models</li>
+                    <li>Integrated with TensorRT-LLM, vLLM, HuggingFace TGI</li>
+                </ul>
+
+                <h3>GGUF</h3>
+
+                <p>Native to llama.cpp, GGUF provides optimal performance on CPU and Apple Silicon. The format supports mixed quantization levels across layers.</p>
+
+                <p><strong>Characteristics:</strong></p>
+                <ul>
+                    <li><strong>~92% quality retention</strong></li>
+                    <li>Quantizes in minutes (vs hours for GPTQ/AWQ)</li>
+                    <li>Excellent for CPU and Apple Silicon deployment</li>
+                    <li>Supports dynamic quantization strategies</li>
+                </ul>
+
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-chart-line"></i> Throughput Impact</div>
+                    <p>AWQ and GPTQ at 4-bit process <strong>~3× more requests/second</strong> than full-precision BF16 models at comparable quality levels.</p>
+                </div>
+
+                <h2>FlashAttention Evolution</h2>
+
+                <p>The FlashAttention series has revolutionized attention computation through IO-aware algorithm design. Understanding this evolution is essential for optimal deployment.</p>
+
+                <h3>FlashAttention (Dao et al., NeurIPS 2022)</h3>
+
+                <p>The original FlashAttention introduced IO-aware attention computation, accounting for reads/writes between GPU HBM (high bandwidth memory) and on-chip SRAM.</p>
+
+                <p><strong>Results:</strong></p>
+                <ul>
+                    <li><strong>2-4× speedup</strong>, up to 7.6× on GPT-2</li>
+                    <li><strong>10× memory savings</strong> at 2K sequence length</li>
+                    <li><strong>20× memory savings</strong> at 4K sequence length</li>
+                </ul>
+
+                <h3>FlashAttention-2 (2023)</h3>
+
+                <p>FlashAttention-2 achieved 2× speedup over FA-1 through improved parallelism and reduced non-matmul FLOPs. Performance reaches <strong>50-73% of theoretical maximum FLOPs/s</strong> on A100, up to 225 TFLOPs/s.</p>
+
+                <h3>FlashAttention-3 (2024)</h3>
+
+                <p>FlashAttention-3 introduced Hopper architecture optimizations with FP8 Tensor Core support, nearly doubling TFLOPs/s compared to FA-2 on H100 GPUs.</p>
+
+                <h3>FlashAttention-4 (2025)</h3>
+
+                <p>FlashAttention-4 targets the Blackwell architecture, achieving approximately <strong>20% speedup over cuDNN kernels</strong> on B200 GPUs.</p>
+
+                <h2>PagedAttention and vLLM</h2>
+
+                <p>Kwon et al. introduced PagedAttention at SIGOPS 2023 (arXiv:2309.06180), applying OS-inspired virtual memory paging to KV cache management.</p>
+
+                <h3>The Problem</h3>
+
+                <p>Existing inference systems waste <strong>60-80% of KV cache memory</strong> due to fragmentation and over-allocation. This severely limits batch sizes and throughput.</p>
+
+                <h3>The Solution</h3>
+
+                <p>PagedAttention divides the KV cache into fixed-size blocks that can be non-contiguously allocated, similar to virtual memory pages. This achieves <strong>&lt;4% memory waste</strong>.</p>
+
+                <h3>vLLM Performance</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comparison</th>
+                            <th>Throughput Improvement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>vs FasterTransformer (same latency)</td>
+                            <td><strong>2-4×</strong></td>
+                        </tr>
+                        <tr>
+                            <td>vs HuggingFace Transformers</td>
+                            <td><strong>8.5-15×</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Optimal configurations</td>
+                            <td><strong>Up to 24×</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>KV-Cache Management Strategies</h2>
+
+                <p>KV-cache size scales with sequence length and batch size, often becoming the memory bottleneck. Several architectural innovations address this challenge.</p>
+
+                <h3>Multi-Query Attention (MQA)</h3>
+
+                <p>MQA uses a single shared K/V head across all query heads:</p>
+                <ul>
+                    <li><strong>10-100× smaller</strong> KV cache</li>
+                    <li><strong>12× faster</strong> inference</li>
+                    <li>Some quality degradation on complex tasks</li>
+                </ul>
+
+                <h3>Grouped-Query Attention (GQA)</h3>
+
+                <p>GQA balances MQA efficiency with MHA quality by grouping query heads to share K/V heads. Used in LLaMA 2/3, Gemma 3, and Qwen3.</p>
+
+                <p><strong>Results:</strong> <strong>75% memory savings (4× reduction)</strong> for 32K context with minimal quality impact.</p>
+
+                <h3>Multi-Head Latent Attention (MLA)</h3>
+
+                <p>DeepSeek-V2 introduced MLA, using low-rank factorized projection for cache compression:</p>
+                <ul>
+                    <li><strong>Up to 93% reduction</strong> in cache size</li>
+                    <li>Nearly <strong>6× generation throughput</strong></li>
+                    <li>Maintains quality through learned compression</li>
+                </ul>
+
+                <h2>Speculative Decoding (EAGLE Series)</h2>
+
+                <p>Speculative decoding accelerates generation by drafting multiple tokens with a small model, then verifying with the target model in parallel.</p>
+
+                <h3>EAGLE (ICML 2024)</h3>
+
+                <p>EAGLE operates at the feature level rather than token level, enabling more efficient drafting. Results on LLaMA2-Chat 70B:</p>
+                <ul>
+                    <li><strong>2.7-3.5× latency speedup</strong></li>
+                    <li><strong>Doubled throughput</strong></li>
+                </ul>
+
+                <h3>EAGLE-2 (EMNLP 2024)</h3>
+
+                <p>EAGLE-2 introduced dynamic draft tree structure, adapting speculation depth based on acceptance rates. This achieves <strong>~1.8× faster</strong> than EAGLE-1.</p>
+
+                <h3>EAGLE-3 (NeurIPS 2025)</h3>
+
+                <p>EAGLE-3 represents the current state-of-the-art with training-time testing and multi-layer feature fusion:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>EAGLE-3 Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>vs Vanilla Autoregressive</td>
+                            <td><strong>3.0-6.5× speedup</strong></td>
+                        </tr>
+                        <tr>
+                            <td>vs EAGLE-2</td>
+                            <td><strong>20-40% improvement</strong></td>
+                        </tr>
+                        <tr>
+                            <td>LLaMA-3.3-70B</td>
+                            <td><strong>4.0-4.8× speedups</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>Continuous Batching</h2>
+
+                <p>Yu et al. introduced iteration-level scheduling in Orca (OSDI 2022), enabling dynamic batch composition at each decoding iteration.</p>
+
+                <h3>Traditional vs Continuous Batching</h3>
+
+                <p>Traditional batching processes sequences together until all complete, wasting compute on padding. Continuous batching allows new sequences to enter and completed sequences to exit at each iteration.</p>
+
+                <p><strong>Results:</strong> <strong>23× throughput improvement</strong> vs static batching with higher GPU utilization.</p>
+
+                <h2>Inference Engine Recommendations</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hardware</th>
+                            <th>Recommended Engine</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>H100/B200</td>
+                            <td>TensorRT-LLM with FP8</td>
+                            <td>Maximum throughput</td>
+                        </tr>
+                        <tr>
+                            <td>Consumer GPUs</td>
+                            <td>vLLM + AWQ</td>
+                            <td>Best quality/speed tradeoff</td>
+                        </tr>
+                        <tr>
+                            <td>CPU/Apple Silicon</td>
+                            <td>llama.cpp with GGUF</td>
+                            <td>Optimized for non-GPU</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>TensorRT-LLM Performance</h3>
+
+                <ul>
+                    <li><strong>10,000 tokens/s</strong> on H100</li>
+                    <li><strong>70% faster</strong> than llama.cpp on RTX 4090</li>
+                </ul>
+
+                <div class="warning-box">
+                    <div class="warning-box-title"><i class="fas fa-exclamation-triangle"></i> Hardware Dependency</div>
+                    <p>All benchmarks are highly hardware-dependent. Results vary significantly based on GPU architecture, memory bandwidth, batch size, and model architecture. Always benchmark on target hardware before production deployment.</p>
+                </div>
+
+                <h2>Implementation Recommendations</h2>
+
+                <ol>
+                    <li><strong>Start with vLLM + AWQ</strong> for most production deployments</li>
+                    <li><strong>Use GGUF</strong> for CPU/edge deployment scenarios</li>
+                    <li><strong>Enable FlashAttention</strong> by default (usually automatic in modern frameworks)</li>
+                    <li><strong>Consider speculative decoding</strong> for latency-sensitive applications</li>
+                    <li><strong>Implement continuous batching</strong> for throughput-oriented workloads</li>
+                    <li><strong>Profile memory usage</strong> to optimize batch sizes for available hardware</li>
+                </ol>
+
+                <h2>References</h2>
+
+                <ul>
+                    <li>Dao et al. (2022). "FlashAttention: Fast and Memory-Efficient Exact Attention." NeurIPS 2022</li>
+                    <li>Kwon et al. (2023). "PagedAttention." SIGOPS 2023, arXiv:2309.06180</li>
+                    <li>Li et al. (2025). "EAGLE-3: Scaling up Inference Acceleration." NeurIPS 2025, arXiv:2503.01840</li>
+                    <li>Lin et al. (2023). "AWQ: Activation-aware Weight Quantization." MLSys 2024</li>
+                    <li>Frantar et al. (2022). "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers." ICLR 2023</li>
+                    <li>Yu et al. (2022). "Orca: A Distributed Serving System for Transformer-Based Generative Models." OSDI 2022</li>
+                </ul>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Tragro Pte. Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

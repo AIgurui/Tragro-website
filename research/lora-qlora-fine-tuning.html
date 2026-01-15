@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Technical comparison of LoRA, QLoRA, DoRA, and full fine-tuning methods for large language models with GPU requirements and accuracy benchmarks.">
+    <meta name="keywords" content="LoRA, QLoRA, DoRA, fine-tuning, LLM training, parameter efficient, PEFT, low-rank adaptation">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Tragro Pte. Ltd.">
+    <title>LoRA vs QLoRA vs Full Fine-Tuning: A Technical Deep Dive | Tragro Research</title>
+    <link rel="canonical" href="https://tragrow.com/research/lora-qlora-fine-tuning.html">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #0f172a;
+            --accent-color: #f59e0b;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--text-light);
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--primary-color); }
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 1.5rem 4rem;
+        }
+        .article-header { margin-bottom: 3rem; }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .article-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .article-date {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+        .article-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 3rem 0 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .article-content h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 2rem 0 1rem;
+        }
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+        .article-content p {
+            margin-bottom: 1.5rem;
+            color: #374151;
+        }
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        .article-content li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .article-content strong {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .article-content code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+        .article-content pre {
+            background: var(--secondary-color);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+        .article-content pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #64748b;
+        }
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+        .article-content th, .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .article-content th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .article-content tr:hover { background: #f8fafc; }
+        .info-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .info-box-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .warning-box-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 0.5rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: gap 0.3s ease;
+        }
+        .back-link:hover { gap: 0.75rem; }
+        .footer {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+        .footer-content p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-container { padding: 100px 1rem 3rem; }
+            .article-title { font-size: 1.75rem; }
+            .article-content { font-size: 1rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="../index.html" class="logo">TRAGRO</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Home</a></li>
+                <li><a href="../index.html#services">Services</a></li>
+                <li><a href="../index.html#about">About</a></li>
+                <li><a href="../index.html#research">Research</a></li>
+                <li><a href="../index.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-container">
+        <a href="../index.html#research" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Research
+        </a>
+
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <span class="article-tag">Academia & Research</span>
+                    <span class="article-date"><i class="fas fa-calendar-alt"></i> January 2026</span>
+                    <span class="article-date"><i class="fas fa-clock"></i> 18 min read</span>
+                </div>
+                <h1 class="article-title">LoRA vs QLoRA vs Full Fine-Tuning: A Technical Deep Dive</h1>
+                <p class="article-subtitle">Comprehensive analysis of parameter-efficient fine-tuning methods, GPU requirements, accuracy tradeoffs, and practical implementation guidance.</p>
+            </header>
+
+            <div class="article-content">
+                <p>The advent of large language models has created a fundamental tension: these models achieve remarkable capabilities through scale, yet that same scale makes adaptation prohibitively expensive. Parameter-efficient fine-tuning methods, particularly Low-Rank Adaptation (LoRA) and its variants, have emerged as the dominant solution to this challenge.</p>
+
+                <p>This research provides a rigorous technical analysis of LoRA, QLoRA, DoRA, and full fine-tuning approaches, drawing from peer-reviewed papers and extensive practitioner benchmarks to guide implementation decisions.</p>
+
+                <h2>The Original LoRA Paper</h2>
+
+                <p>Hu et al. introduced LoRA in their 2021 paper "LoRA: Low-Rank Adaptation of Large Language Models" (arXiv:2106.09685), published while at Microsoft. The fundamental hypothesis underlying LoRA is that weight updates during fine-tuning have a "low intrinsic rank" — meaning the essential information in these updates can be captured by matrices of much lower dimensionality than the original weights.</p>
+
+                <h3>Mathematical Formulation</h3>
+
+                <p>LoRA decomposes the weight update matrix ΔW into two smaller low-rank matrices:</p>
+
+                <pre><code>W_updated = W + (BA) × (α/r)</code></pre>
+
+                <p>Where:</p>
+                <ul>
+                    <li><strong>W ∈ ℝ<sup>d×k</sup></strong> is the pretrained weight matrix</li>
+                    <li><strong>B ∈ ℝ<sup>d×r</sup></strong> and <strong>A ∈ ℝ<sup>r×k</sup></strong> are low-rank matrices</li>
+                    <li><strong>r &lt;&lt; min(d,k)</strong> is the rank (typically 4-256)</li>
+                    <li><strong>α</strong> is the scaling factor controlling update magnitude</li>
+                </ul>
+
+                <p>During initialization, A is typically initialized with Gaussian values while B is initialized to zero, ensuring the initial ΔW = BA = 0. This means training starts from the pretrained weights exactly.</p>
+
+                <h3>Original Results on GPT-3</h3>
+
+                <p>The original paper demonstrated remarkable efficiency gains on GPT-3 175B:</p>
+
+                <ul>
+                    <li>Trainable parameters reduced by <strong>10,000×</strong></li>
+                    <li>GPU memory requirements reduced by <strong>3×</strong></li>
+                    <li>Performance matching or exceeding full fine-tuning on GLUE benchmarks</li>
+                </ul>
+
+                <h2>QLoRA: Quantized Low-Rank Adaptation</h2>
+
+                <p>Dettmers et al. introduced QLoRA at NeurIPS 2023 (arXiv:2305.14314), enabling fine-tuning of much larger models on consumer hardware through aggressive quantization combined with LoRA.</p>
+
+                <h3>Key Innovations</h3>
+
+                <h4>4-bit NormalFloat (NF4) Quantization</h4>
+
+                <p>QLoRA introduces NF4, an information-theoretically optimal data type for normally distributed weights. Since neural network weights typically follow a normal distribution, NF4 achieves better information preservation than uniform quantization schemes.</p>
+
+                <h4>Double Quantization</h4>
+
+                <p>Double quantization applies quantization to the quantization constants themselves, saving approximately <strong>0.37 bits per parameter</strong>. For a 65B model, this translates to roughly 3 GB of memory savings — significant when operating near GPU memory limits.</p>
+
+                <h4>Paged Optimizers</h4>
+
+                <p>QLoRA leverages NVIDIA unified memory for automatic page transfers between GPU and CPU memory. This prevents out-of-memory crashes during training when gradient checkpointing creates memory spikes.</p>
+
+                <h3>Breakthrough Results</h3>
+
+                <p>QLoRA enabled <strong>65B parameter model fine-tuning on a single 48GB GPU</strong>. The resulting Guanaco 65B model achieved <strong>99.3% of ChatGPT performance</strong> on the Vicuna benchmark, trained in just 24 hours on a single GPU.</p>
+
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-lightbulb"></i> Practical Impact</div>
+                    <p>QLoRA democratized large model fine-tuning, making it accessible to researchers and practitioners without access to multi-GPU clusters. This shifted the economics of custom model development dramatically.</p>
+                </div>
+
+                <h2>DoRA: Weight-Decomposed Low-Rank Adaptation</h2>
+
+                <p>Liu et al. introduced DoRA at ICML 2024 as an oral presentation (1.5% acceptance rate), published in arXiv:2402.09353 from NVIDIA Research.</p>
+
+                <h3>Theoretical Foundation</h3>
+
+                <p>DoRA decomposes pretrained weights into magnitude and direction components:</p>
+
+                <pre><code>W' = m × (V + ΔV) / ||V + ΔV||</code></pre>
+
+                <p>Where:</p>
+                <ul>
+                    <li><strong>m</strong> is a learnable scalar vector (magnitude)</li>
+                    <li><strong>V</strong> is the directional component of original weights</li>
+                    <li><strong>ΔV</strong> is updated using standard LoRA decomposition</li>
+                </ul>
+
+                <h3>Key Insight</h3>
+
+                <p>Analysis revealed that full fine-tuning shows <strong>proportional changes in magnitude and direction</strong>, while standard LoRA primarily updates direction. By explicitly learning magnitude separately, DoRA enables LoRA to better mimic full fine-tuning's learning patterns.</p>
+
+                <h3>Performance Improvements</h3>
+
+                <p>DoRA consistently outperforms LoRA across:</p>
+                <ul>
+                    <li>LLaMA language models</li>
+                    <li>LLaVA multimodal models</li>
+                    <li>VL-BART vision-language models</li>
+                </ul>
+
+                <p>Notably, DoRA shows more robustness to rank hyperparameter changes, reducing the sensitivity that often plagues LoRA configurations.</p>
+
+                <h2>GPU Memory Requirements</h2>
+
+                <p>Understanding memory requirements is essential for hardware planning. The following table summarizes typical requirements across model sizes:</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model Size</th>
+                            <th>Full FT (FP16)</th>
+                            <th>LoRA (16-bit)</th>
+                            <th>QLoRA (4-bit)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>7B</strong></td>
+                            <td>100-120 GB</td>
+                            <td>~20-28 GB</td>
+                            <td>~8-16 GB</td>
+                        </tr>
+                        <tr>
+                            <td><strong>13B</strong></td>
+                            <td>~200 GB</td>
+                            <td>~35-40 GB</td>
+                            <td>~15-20 GB</td>
+                        </tr>
+                        <tr>
+                            <td><strong>70B</strong></td>
+                            <td>500-672 GB</td>
+                            <td>~200 GB</td>
+                            <td>~46-48 GB</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Sebastian Raschka's Measurements</h3>
+
+                <p>Sebastian Raschka's rigorous benchmarks on Llama-2 7B provide concrete comparisons:</p>
+
+                <ul>
+                    <li><strong>Default LoRA (16-bit bf16)</strong>: 21.33 GB, 1.85h training</li>
+                    <li><strong>QLoRA (4-bit NF4)</strong>: 14.18 GB, 2.79h training</li>
+                </ul>
+
+                <p>This represents <strong>33% memory savings</strong> but <strong>39% increased runtime</strong> — a critical tradeoff for production planning.</p>
+
+                <h2>Accuracy Comparisons</h2>
+
+                <h3>"LoRA Learns Less and Forgets Less"</h3>
+
+                <p>Biderman et al.'s TMLR 2024 paper (arXiv:2405.09673) provides the most rigorous analysis of LoRA versus full fine-tuning performance gaps. The key finding: full fine-tuning learns perturbations with rank <strong>10-100× greater</strong> than typical LoRA configurations.</p>
+
+                <p>This explains performance gaps observed in challenging domains like code generation and mathematical reasoning, where high-rank weight updates may be necessary for learning complex patterns.</p>
+
+                <h3>Sebastian Raschka's Empirical Findings</h3>
+
+                <p>Extensive experimentation revealed several practical insights:</p>
+
+                <ul>
+                    <li>LoRA results are <strong>remarkably consistent across runs</strong></li>
+                    <li>Multi-epoch training often <strong>deteriorates results</strong> for instruction fine-tuning</li>
+                    <li>Apply LoRA to <strong>ALL layers</strong>, not just Q and V attention matrices</li>
+                    <li>Optimal configuration for instruction tuning: <strong>r=256, α=512</strong></li>
+                </ul>
+
+                <div class="warning-box">
+                    <div class="warning-box-title"><i class="fas fa-exclamation-triangle"></i> Critical Finding</div>
+                    <p><strong>Data quality matters more than quantity</strong>: LIMA with just 1,000 carefully curated examples matched performance of 50,000 Alpaca examples. Focus on data curation before scaling.</p>
+                </div>
+
+                <h2>Forgetting vs Learning Tradeoffs</h2>
+
+                <p>LoRA acts as <strong>implicit regularization</strong>, constraining weight updates to a low-rank subspace. This has important implications for both learning and forgetting.</p>
+
+                <h3>Empirical Evidence</h3>
+
+                <p>Biderman et al. (2024) demonstrated that even high-rank LoRA (r=256) forgets less than full fine-tuning with dropout and weight decay. LoRA-trained models:</p>
+
+                <ul>
+                    <li>Maintain more diverse token generations</li>
+                    <li>Stay closer to base model behavior on out-of-distribution inputs</li>
+                    <li>Show better preservation of general capabilities</li>
+                </ul>
+
+                <p>This makes LoRA particularly attractive for domain adaptation scenarios where preserving the base model's general knowledge is important.</p>
+
+                <h2>Recent Developments (2024-2025)</h2>
+
+                <h3>LoRA+</h3>
+
+                <p>LoRA+ introduces different learning rates for A and B matrices, based on the observation that these matrices have different optimal learning dynamics. Results show:</p>
+                <ul>
+                    <li>1-2% accuracy improvement</li>
+                    <li>Up to 2× training speedup</li>
+                </ul>
+
+                <h3>AdaLoRA</h3>
+
+                <p>AdaLoRA implements adaptive rank allocation based on layer importance, automatically assigning higher ranks to layers that benefit more from fine-tuning. This removes the need for manual rank tuning across layers.</p>
+
+                <h3>rsLoRA (Rank-Stabilized LoRA)</h3>
+
+                <p>rsLoRA modifies the scaling factor from α/r to α/√r, improving training stability at high ranks and enabling better scaling to larger rank values without degradation.</p>
+
+                <h3>Hugging Face PEFT Integration</h3>
+
+                <p>The PEFT library now provides native support for these advances:</p>
+
+                <pre><code>from peft import LoraConfig
+
+config = LoraConfig(
+    use_dora=True,      # Enable DoRA
+    use_rslora=True,    # Enable rsLoRA scaling
+    # EVA initialization also available
+)</code></pre>
+
+                <h2>Implementation Recommendations</h2>
+
+                <h3>Choosing Between Methods</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Recommended Method</th>
+                            <th>Rationale</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Consumer GPU (≤24GB)</td>
+                            <td>QLoRA</td>
+                            <td>Memory constraints dominate</td>
+                        </tr>
+                        <tr>
+                            <td>Production training cluster</td>
+                            <td>LoRA or DoRA</td>
+                            <td>Better quality, faster training</td>
+                        </tr>
+                        <tr>
+                            <td>Maximum quality needed</td>
+                            <td>Full FT or DoRA</td>
+                            <td>Willing to trade efficiency for quality</td>
+                        </tr>
+                        <tr>
+                            <td>Preserve base capabilities</td>
+                            <td>LoRA with moderate r</td>
+                            <td>Implicit regularization benefit</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Hyperparameter Guidelines</h3>
+
+                <ol>
+                    <li><strong>Start with r=64-128</strong> for most tasks; increase to r=256 for complex domains</li>
+                    <li><strong>Set α = 2×r</strong> as a starting point (e.g., r=128, α=256)</li>
+                    <li><strong>Apply to all linear layers</strong> unless memory-constrained</li>
+                    <li><strong>Use single-epoch training</strong> for instruction fine-tuning</li>
+                    <li><strong>Prioritize data quality</strong> over dataset size</li>
+                </ol>
+
+                <h2>Conflicting Information in the Literature</h2>
+
+                <p>Several areas show conflicting findings that warrant careful consideration:</p>
+
+                <h3>LoRA vs Full FT Performance Gap</h3>
+
+                <p>Original papers claimed parity; rigorous studies show gaps on challenging domains. The gap appears task and domain-dependent, with code and math showing larger gaps than general language tasks.</p>
+
+                <h3>Optimal Rank Selection</h3>
+
+                <p>The original paper used r=8, while modern practice often uses r=64-256. Higher ranks consistently improve results but with diminishing returns. The optimal rank depends on task complexity and available compute.</p>
+
+                <h3>Memory Savings Claims</h3>
+
+                <p>QLoRA's claimed 75% savings versus Raschka's measured 33% depend on baseline comparison. Actual savings vary significantly based on batch size, sequence length, and gradient checkpointing configuration.</p>
+
+                <h2>References</h2>
+
+                <ul>
+                    <li>Hu et al. (2022). "LoRA: Low-Rank Adaptation of Large Language Models." ICLR 2022, arXiv:2106.09685</li>
+                    <li>Dettmers et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs." NeurIPS 2023, arXiv:2305.14314</li>
+                    <li>Liu et al. (2024). "DoRA: Weight-Decomposed Low-Rank Adaptation." ICML 2024 Oral, arXiv:2402.09353</li>
+                    <li>Biderman et al. (2024). "LoRA Learns Less and Forgets Less." TMLR 2024, arXiv:2405.09673</li>
+                    <li>Raschka, S. (2024). "Practical Tips for Finetuning LLMs Using LoRA." sebastianraschka.com</li>
+                </ul>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Tragro Pte. Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

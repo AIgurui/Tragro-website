@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- Homepage -->
+    <url>
+        <loc>https://tragrow.com/</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+
+    <!-- Research Articles -->
+    <url>
+        <loc>https://tragrow.com/research/multi-agent-system-design-patterns.html</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://tragrow.com/research/lora-qlora-fine-tuning.html</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://tragrow.com/research/production-rag-architecture.html</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://tragrow.com/research/llm-inference-optimization.html</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://tragrow.com/research/llm-evaluation-frameworks.html</loc>
+        <lastmod>2026-01-15</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+</urlset>

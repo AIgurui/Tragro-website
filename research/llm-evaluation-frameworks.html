@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Beyond benchmark scores: LLM evaluation frameworks including LLM-as-Judge, hallucination detection, RAGAS, domain-specific evaluation, and production monitoring.">
+    <meta name="keywords" content="LLM evaluation, MMLU, LLM-as-Judge, hallucination detection, DeepEval, RAGAS, MT-Bench, G-Eval, semantic entropy">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Tragro Pte. Ltd.">
+    <title>LLM Evaluation Frameworks Beyond Benchmark Scores | Tragro Research</title>
+    <link rel="canonical" href="https://tragrow.com/research/llm-evaluation-frameworks.html">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #0f172a;
+            --accent-color: #f59e0b;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--text-light);
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--primary-color); }
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 1.5rem 4rem;
+        }
+        .article-header { margin-bottom: 3rem; }
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .article-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .article-date {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+        .article-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 3rem 0 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .article-content h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 2rem 0 1rem;
+        }
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+        .article-content p {
+            margin-bottom: 1.5rem;
+            color: #374151;
+        }
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+        .article-content li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .article-content strong {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+        .article-content code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+        .article-content pre {
+            background: var(--secondary-color);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+        .article-content pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #64748b;
+        }
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+        .article-content th, .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .article-content th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        .article-content tr:hover { background: #f8fafc; }
+        .info-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .info-box-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        .warning-box-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 0.5rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: gap 0.3s ease;
+        }
+        .back-link:hover { gap: 0.75rem; }
+        .footer {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+        .footer-content p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .article-container { padding: 100px 1rem 3rem; }
+            .article-title { font-size: 1.75rem; }
+            .article-content { font-size: 1rem; }
+            .article-content table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="../index.html" class="logo">TRAGRO</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Home</a></li>
+                <li><a href="../index.html#services">Services</a></li>
+                <li><a href="../index.html#about">About</a></li>
+                <li><a href="../index.html#research">Research</a></li>
+                <li><a href="../index.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-container">
+        <a href="../index.html#research" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Research
+        </a>
+
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <span class="article-tag">Academia & Research</span>
+                    <span class="article-date"><i class="fas fa-calendar-alt"></i> January 2026</span>
+                    <span class="article-date"><i class="fas fa-clock"></i> 22 min read</span>
+                </div>
+                <h1 class="article-title">LLM Evaluation Frameworks Beyond Benchmark Scores</h1>
+                <p class="article-subtitle">A comprehensive guide to modern LLM evaluation: from the limitations of traditional benchmarks to production monitoring strategies.</p>
+            </header>
+
+            <div class="article-content">
+                <p>As large language models have achieved near-saturation on traditional benchmarks, the evaluation landscape has shifted toward more nuanced approaches. Single-number benchmark scores no longer adequately capture model capabilities or predict real-world performance. This research examines the state of LLM evaluation, from the limitations of current benchmarks to emerging techniques for hallucination detection and production monitoring.</p>
+
+                <h2>Traditional Benchmark Limitations</h2>
+
+                <h3>MMLU Saturation</h3>
+
+                <p>The Massive Multitask Language Understanding (MMLU) benchmark has effectively reached saturation. The MMLU-Pro paper (arXiv:2406.01574) documents several critical issues:</p>
+
+                <ul>
+                    <li>Most frontier models score <strong>86-87%</strong></li>
+                    <li>GPT-4o achieved only <strong>1% improvement</strong> despite 10%+ gains on MATH benchmark</li>
+                    <li>Wikipedia (2024) reports <strong>6.5% of MMLU questions contain errors</strong></li>
+                    <li><strong>57% of "Virology" subset questions have errors</strong></li>
+                </ul>
+
+                <h3>Data Contamination</h3>
+
+                <p>A NAACL 2024 paper by Deng et al. revealed alarming contamination evidence: ChatGPT and GPT-4 demonstrated <strong>52% and 57% exact match rates</strong> when guessing missing MMLU options — far above chance levels.</p>
+
+                <p>ConTAM analysis suggests contamination effects may be larger than reported in model evaluations, calling into question the validity of many published benchmark results.</p>
+
+                <h3>MMLU-Pro Improvements</h3>
+
+                <p>MMLU-Pro addresses several MMLU limitations:</p>
+
+                <ul>
+                    <li><strong>10 answer options</strong> (3× more distractors than MMLU)</li>
+                    <li>Focus on reasoning-intensive tasks</li>
+                    <li>Prompt sensitivity reduced from 4-5% to 2%</li>
+                    <li>Typical <strong>~30% performance drop</strong> from MMLU scores</li>
+                </ul>
+
+                <h2>LLM-as-a-Judge Methods</h2>
+
+                <p>Using LLMs to evaluate LLM outputs has emerged as a scalable alternative to human evaluation, though with important caveats.</p>
+
+                <h3>G-Eval</h3>
+
+                <p>Liu et al. introduced G-Eval at EMNLP 2023 (arXiv:2303.16634), implementing a structured evaluation pipeline:</p>
+
+                <ol>
+                    <li>Task introduction + evaluation criteria definition</li>
+                    <li>Chain-of-Thought generation for reasoning</li>
+                    <li>Form-filling evaluation with structured output</li>
+                    <li>Probability-weighted scoring for nuanced assessment</li>
+                </ol>
+
+                <p>G-Eval achieves Spearman correlation of <strong>0.514 with human evaluators</strong> on summarization tasks — competitive with human-human agreement.</p>
+
+                <h3>MT-Bench and Chatbot Arena</h3>
+
+                <p>Zheng et al. (NeurIPS 2023, arXiv:2306.05685) introduced complementary evaluation approaches:</p>
+
+                <h4>MT-Bench</h4>
+                <ul>
+                    <li>80 high-quality multi-turn questions</li>
+                    <li>8 categories covering diverse capabilities</li>
+                    <li>GPT-4 as judge achieves <strong>&gt;80% agreement</strong> with humans</li>
+                    <li>Agreement rate matches human-human agreement levels</li>
+                </ul>
+
+                <h4>Chatbot Arena</h4>
+                <ul>
+                    <li>Over <strong>1.5M pairwise preferences</strong> collected</li>
+                    <li>Elo scoring system for ranking</li>
+                    <li>Real-world user interactions</li>
+                    <li>Continuous evaluation as models update</li>
+                </ul>
+
+                <h3>Known LLM-as-Judge Biases</h3>
+
+                <div class="warning-box">
+                    <div class="warning-box-title"><i class="fas fa-exclamation-triangle"></i> Critical Biases to Address</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bias Type</th>
+                                <th>Description</th>
+                                <th>Mitigation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Position Bias</strong></td>
+                                <td>Favor answers in certain positions</td>
+                                <td>Swap positions and average</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Verbosity Bias</strong></td>
+                                <td>Prefer longer responses</td>
+                                <td>Alpaca-Eval 2.0 LC metric</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Self-Enhancement</strong></td>
+                                <td>Prefer outputs from same family</td>
+                                <td>Use different judge models</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Limited Reasoning</strong></td>
+                                <td>70% math failure rate (GPT-4 judge)</td>
+                                <td>Reference-guided evaluation</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>DeepEval Framework</h2>
+
+                <p>DeepEval (GitHub: confident-ai/deepeval) has emerged as a leading evaluation framework with over 10k GitHub stars and 20M+ daily evaluations.</p>
+
+                <h3>Key Metrics by Category</h3>
+
+                <h4>RAG Evaluation</h4>
+                <ul>
+                    <li><strong>AnswerRelevancy</strong>: Response pertinence to query</li>
+                    <li><strong>Faithfulness</strong>: Factual consistency with context</li>
+                    <li><strong>ContextualPrecision</strong>: Retrieval signal quality</li>
+                    <li><strong>ContextualRecall</strong>: Retrieval completeness</li>
+                </ul>
+
+                <h4>Agent Evaluation</h4>
+                <ul>
+                    <li><strong>TaskCompletion</strong>: End-to-end goal achievement</li>
+                    <li><strong>ToolCorrectness</strong>: Appropriate tool selection and use</li>
+                </ul>
+
+                <h4>General Metrics</h4>
+                <ul>
+                    <li><strong>GEval</strong>: Customizable evaluation criteria</li>
+                    <li><strong>Hallucination</strong>: Unsupported claim detection</li>
+                    <li><strong>Bias</strong>: Demographic and viewpoint bias</li>
+                    <li><strong>Toxicity</strong>: Harmful content detection</li>
+                </ul>
+
+                <h3>DAGMetric</h3>
+
+                <p>DeepEval's DAGMetric implements tree-based, directed acyclic graph evaluation for deterministic multi-step assessment. This enables complex evaluation workflows with explicit dependencies between metric computations.</p>
+
+                <h2>Hallucination Detection Methods</h2>
+
+                <p>Detecting and quantifying hallucination remains one of the most important evaluation challenges.</p>
+
+                <h3>FActScore</h3>
+
+                <p>Min et al. (2023) introduced FActScore, which decomposes generation into atomic facts and validates each against Wikipedia. Key findings:</p>
+
+                <ul>
+                    <li>Error rates <strong>higher for rarer entities</strong></li>
+                    <li>Error rates <strong>increase later in generation</strong></li>
+                    <li>Enables fine-grained factuality assessment</li>
+                </ul>
+
+                <h3>SAFE (Search-Augmented Factuality Evaluator)</h3>
+
+                <p>Wei et al. (2024) introduced SAFE, using an LLM agent with iterative Google Search for fact verification:</p>
+
+                <ul>
+                    <li><strong>72% agreement with human evaluators</strong></li>
+                    <li><strong>20× cheaper</strong> than human annotation</li>
+                    <li>Scalable to large evaluation sets</li>
+                </ul>
+
+                <h3>SelfCheckGPT</h3>
+
+                <p>Manakul et al. (2023) developed SelfCheckGPT, which checks consistency against multiple stochastic samples from the same model. Black-box access is sufficient — no model internals required.</p>
+
+                <h3>Semantic Entropy</h3>
+
+                <p>Farquhar et al. published in Nature (August 2024) introduced semantic entropy, which measures uncertainty at the meaning level rather than token level. This approach detects "confabulations" — confident but incorrect responses.</p>
+
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-lightbulb"></i> Latest Development: MetaQA (2025)</div>
+                    <p>MetaQA implements prompt mutation for hallucination detection, achieving F1-score improvements of <strong>112.2%</strong> on Mistral-7B through systematic query variations.</p>
+                </div>
+
+                <h2>Domain-Specific Evaluation</h2>
+
+                <p>General benchmarks often fail to capture domain-specific requirements. Several specialized benchmarks address this gap.</p>
+
+                <h3>Medical: MultiMedQA</h3>
+
+                <p>MultiMedQA comprises 6 medical QA datasets evaluating:</p>
+                <ul>
+                    <li>Factuality and medical accuracy</li>
+                    <li>Comprehension of medical terminology</li>
+                    <li>Clinical reasoning capabilities</li>
+                    <li>Potential harm assessment</li>
+                    <li>Bias in medical contexts</li>
+                </ul>
+
+                <h3>Legal: LegalBench</h3>
+
+                <p>Stanford's LegalBench includes 162 tasks across 6 legal reasoning types:</p>
+                <ul>
+                    <li><strong>Issue-spotting</strong>: Identifying legal issues in fact patterns</li>
+                    <li><strong>Rule-recall</strong>: Recalling relevant legal rules</li>
+                    <li><strong>Rule-application</strong>: Applying rules to facts</li>
+                    <li><strong>Rule-conclusion</strong>: Drawing legal conclusions</li>
+                    <li><strong>Interpretation</strong>: Statutory and contractual interpretation</li>
+                    <li><strong>Rhetorical understanding</strong>: Understanding legal argumentation</li>
+                </ul>
+
+                <h3>Financial: FinBen</h3>
+
+                <p>FinBen provides comprehensive financial evaluation across:</p>
+                <ul>
+                    <li>36 datasets covering 24 tasks</li>
+                    <li>7 financial domains including risk management</li>
+                    <li>Forecasting and decision-making evaluation</li>
+                    <li>Financial reasoning benchmarks</li>
+                </ul>
+
+                <h2>Production Monitoring</h2>
+
+                <p>Deployed models require continuous monitoring for drift and degradation.</p>
+
+                <h3>Drift Types</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Drift Type</th>
+                            <th>Description</th>
+                            <th>Detection Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Concept Drift</strong></td>
+                            <td>Meaning of concepts shifts over time</td>
+                            <td>Semantic similarity monitoring</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Statistical/Data Drift</strong></td>
+                            <td>Input distribution changes</td>
+                            <td>PSI monitoring, distribution tests</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Output Drift</strong></td>
+                            <td>Response characteristics change</td>
+                            <td>Quality metric trending</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>API Model Drift Evidence</h3>
+
+                <p>A 2024 study showed GPT-3.5 and GPT-4 performance varied greatly between March and June 2023 versions, demonstrating that API-accessed models can change significantly without notice.</p>
+
+                <h3>Monitoring Platforms</h3>
+
+                <ul>
+                    <li><strong>Evidently AI</strong>: 100+ built-in metrics for LLM monitoring</li>
+                    <li><strong>LangSmith</strong>: Full lifecycle tracking with trace visualization</li>
+                    <li><strong>Galileo AI</strong>: Hallucination detection without ground truth</li>
+                </ul>
+
+                <h2>Expert Analysis: Lilian Weng's Key Insights</h2>
+
+                <p>Lilian Weng's analysis "Extrinsic Hallucinations in LLMs" (July 2024) provides crucial insights:</p>
+
+                <ul>
+                    <li>Model hallucination errors <strong>increase for rarer entities</strong></li>
+                    <li>Error rates <strong>increase later in long-form generation</strong></li>
+                    <li>Fine-tuning on "unknown" knowledge <strong>increases hallucination tendency</strong></li>
+                    <li>Best performance when models learn Known examples but <strong>few Unknown ones</strong></li>
+                </ul>
+
+                <blockquote>
+                    "The key finding is that models should be trained primarily on knowledge they can verify, with minimal exposure to claims they cannot validate." — Lilian Weng
+                </blockquote>
+
+                <h2>Implementation Recommendations</h2>
+
+                <ol>
+                    <li><strong>Don't rely solely on benchmark scores</strong> — use task-specific evaluation</li>
+                    <li><strong>Implement LLM-as-Judge with bias mitigation</strong> (position swapping, multiple judges)</li>
+                    <li><strong>Use domain-specific benchmarks</strong> for specialized applications</li>
+                    <li><strong>Deploy hallucination detection</strong> appropriate to your risk tolerance</li>
+                    <li><strong>Monitor production systems</strong> for all three drift types</li>
+                    <li><strong>Consider RAGAS for RAG systems</strong> as a baseline evaluation framework</li>
+                    <li><strong>Build evaluation into CI/CD</strong> for continuous quality assurance</li>
+                </ol>
+
+                <h2>Open Questions and Debates</h2>
+
+                <h3>Benchmark Reliability</h3>
+
+                <p>Static benchmarks face contamination concerns, while dynamic approaches add complexity. The field lacks consensus on balancing reliability with practicality.</p>
+
+                <h3>Hallucination Definition</h3>
+
+                <p>The research community uses inconsistent definitions — some define hallucination broadly (any error), others narrowly (fabricated/ungrounded claims). This inconsistency complicates cross-paper comparisons.</p>
+
+                <h2>References</h2>
+
+                <ul>
+                    <li>Liu et al. (2023). "G-Eval: NLG Evaluation using GPT-4." EMNLP 2023, arXiv:2303.16634</li>
+                    <li>Zheng et al. (2023). "MT-Bench and Chatbot Arena." NeurIPS 2023, arXiv:2306.05685</li>
+                    <li>Farquhar et al. (2024). "Detecting hallucinations using semantic entropy." Nature, August 2024</li>
+                    <li>Min et al. (2023). "FActScore: Fine-grained Atomic Evaluation of Factual Precision." EMNLP 2023</li>
+                    <li>Wei et al. (2024). "Long-form factuality in large language models." arXiv:2403.18802</li>
+                    <li>Weng, L. (2024). "Extrinsic Hallucinations in LLMs." lilianweng.github.io</li>
+                    <li>Es et al. (2023). "RAGAS: Automated Evaluation of RAG." arXiv:2309.15217</li>
+                </ul>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Tragro Pte. Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

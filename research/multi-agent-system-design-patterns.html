@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deep dive into multi-agent LLM system architectures, MCP, A2A protocols, memory systems, and production frameworks for AI agent orchestration.">
+    <meta name="keywords" content="multi-agent systems, LLM agents, MCP protocol, A2A protocol, AutoGen, LangGraph, CrewAI, AI orchestration">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Tragro Pte. Ltd.">
+    <title>Multi-Agent System Design Patterns and Orchestration | Tragro Research</title>
+    <link rel="canonical" href="https://tragrow.com/research/multi-agent-system-design-patterns.html">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #0f172a;
+            --accent-color: #f59e0b;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--text-light);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Article Layout */
+        .article-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 120px 1.5rem 4rem;
+        }
+
+        .article-header {
+            margin-bottom: 3rem;
+        }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .article-tag {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .article-date {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .article-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            line-height: 1.6;
+        }
+
+        /* Article Content */
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        .article-content h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 3rem 0 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .article-content h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 2rem 0 1rem;
+        }
+
+        .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            color: #374151;
+        }
+
+        .article-content ul, .article-content ol {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .article-content strong {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .article-content code {
+            background: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+
+        .article-content pre {
+            background: var(--secondary-color);
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        .article-content pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: #64748b;
+        }
+
+        /* Tables */
+        .article-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.95rem;
+        }
+
+        .article-content th, .article-content td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .article-content th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .article-content tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box-title {
+            font-weight: 600;
+            color: #d97706;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: gap 0.3s ease;
+        }
+
+        .back-link:hover {
+            gap: 0.75rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--secondary-color);
+            color: var(--text-light);
+            padding: 3rem 0 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+
+        .footer-content p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .article-container {
+                padding: 100px 1rem 3rem;
+            }
+
+            .article-title {
+                font-size: 1.75rem;
+            }
+
+            .article-content {
+                font-size: 1rem;
+            }
+
+            .article-content table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <a href="../index.html" class="logo">TRAGRO</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#home">Home</a></li>
+                <li><a href="../index.html#services">Services</a></li>
+                <li><a href="../index.html#about">About</a></li>
+                <li><a href="../index.html#research">Research</a></li>
+                <li><a href="../index.html#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="article-container">
+        <a href="../index.html#research" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Research
+        </a>
+
+        <article>
+            <header class="article-header">
+                <div class="article-meta">
+                    <span class="article-tag">Academia & Research</span>
+                    <span class="article-date"><i class="fas fa-calendar-alt"></i> January 2026</span>
+                    <span class="article-date"><i class="fas fa-clock"></i> 20 min read</span>
+                </div>
+                <h1 class="article-title">Multi-Agent System Design Patterns and Orchestration</h1>
+                <p class="article-subtitle">A comprehensive technical analysis of LLM multi-agent architectures, communication protocols, memory systems, and production frameworks.</p>
+            </header>
+
+            <div class="article-content">
+                <p>Multi-agent LLM systems represent one of the most significant architectural paradigms in modern AI development. As organizations move beyond single-model deployments toward collaborative AI ecosystems, understanding the design patterns, protocols, and frameworks that enable effective agent orchestration becomes essential.</p>
+
+                <p>This research examines the foundational architectural patterns documented in recent surveys by Liu et al. (2024) and Chen et al. (2024), alongside the emerging protocol standards that promise to reshape how AI agents communicate and collaborate.</p>
+
+                <h2>Core Architectural Patterns</h2>
+
+                <p>Multi-agent LLM systems employ four primary architectural patterns, each presenting distinct tradeoffs between coordination efficiency, fault tolerance, and scalability.</p>
+
+                <h3>Star Architecture (Centralized/Supervisor-Worker)</h3>
+
+                <p>The star architecture places a central agent that coordinates all communication between worker agents. This pattern creates clear control flow and simplified debugging, but can form bottlenecks at scale. Systems like AutoGen's supervisor architecture and LangGraph's supervisor tool-calling pattern implement this approach.</p>
+
+                <p>Qian et al. (2023), Hong et al. (2024), and Wu et al. (2023) have extensively documented this pattern's effectiveness for task decomposition scenarios where a clear hierarchy of responsibility enhances performance.</p>
+
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-lightbulb"></i> Key Insight</div>
+                    <p>Star architectures excel when tasks can be cleanly decomposed and distributed, but require careful attention to the supervisor's context window limitations when managing many concurrent workers.</p>
+                </div>
+
+                <h3>Hierarchical/Tree Architecture</h3>
+
+                <p>Hierarchical architectures introduce multi-level supervision where supervisors manage other supervisors. LangGraph's hierarchical teams and MegaAgent's system-level parallelism implement this pattern, balancing control and distribution while adding complexity in level management.</p>
+
+                <p>This pattern proves particularly effective for large-scale systems requiring departmental organization, such as enterprise software development pipelines where different teams handle frontend, backend, and testing responsibilities.</p>
+
+                <h3>Network/Mesh Architecture (Peer-to-Peer)</h3>
+
+                <p>Network architectures enable every agent to communicate with every other agent, maximizing information flow but creating communication overhead that scales quadratically with agent count. CAMEL's role-playing framework demonstrates this approach.</p>
+
+                <p>The primary advantage lies in resilience: single-agent failure doesn't cripple the entire system. This makes mesh architectures attractive for mission-critical applications where redundancy matters more than efficiency.</p>
+
+                <h3>Holonic/Hybrid Patterns</h3>
+
+                <p>Holonic patterns combine elements from hierarchical and peer-to-peer approaches, creating systems optimized for specific performance metrics or highly dynamic environments. These patterns adapt their structure based on task requirements, switching between centralized coordination for complex planning and distributed execution for parallelizable subtasks.</p>
+
+                <h2>Model Context Protocol (MCP)</h2>
+
+                <p>Anthropic released the Model Context Protocol in November 2024 as an open standard for connecting LLM applications to external data sources and tools. The protocol uses <strong>JSON-RPC 2.0</strong> messages, drawing inspiration from the Language Server Protocol (LSP) that revolutionized IDE tooling.</p>
+
+                <h3>Architecture Components</h3>
+
+                <p>MCP defines three primary architectural components:</p>
+
+                <ul>
+                    <li><strong>Hosts</strong>: LLM applications initiating connections (e.g., Claude Desktop, IDE extensions)</li>
+                    <li><strong>Clients</strong>: Connectors within host applications maintaining one-to-one sessions with servers</li>
+                    <li><strong>Servers</strong>: Services providing context and capabilities to the LLM</li>
+                </ul>
+
+                <h3>Server Primitives</h3>
+
+                <p>MCP servers expose three types of primitives:</p>
+
+                <ol>
+                    <li><strong>Resources</strong>: Context and data for users or AI models (documents, database records, API responses)</li>
+                    <li><strong>Prompts</strong>: Templated messages and workflows for common operations</li>
+                    <li><strong>Tools</strong>: Functions that AI models can execute to perform actions</li>
+                </ol>
+
+                <h3>Transport Mechanisms</h3>
+
+                <p>MCP supports two transport mechanisms:</p>
+                <ul>
+                    <li><strong>STDIO</strong>: Standard input/output for local integrations with minimal latency</li>
+                    <li><strong>HTTP+SSE</strong>: Server-Sent Events over HTTP for remote connections with streaming support</li>
+                </ul>
+
+                <h3>Adoption and Ecosystem</h3>
+
+                <p>By January 2025, MCP had achieved significant adoption with over 1,000 open-source connectors available. Major adopters include OpenAI, Google DeepMind, Block, Apollo, Zed, Replit, Codeium, and Sourcegraph. Official SDKs are available in Python, TypeScript, C#, and Java.</p>
+
+                <div class="warning-box">
+                    <div class="warning-box-title"><i class="fas fa-exclamation-triangle"></i> Security Considerations</div>
+                    <p>April 2025 security analysis identified several concerns: prompt injection vulnerabilities, tool permission issues allowing file exfiltration, lookalike tools silently replacing trusted ones, and OAuth authorization specification conflicts with enterprise practices. Production deployments should implement strict tool validation and permission scoping.</p>
+                </div>
+
+                <h2>Agent2Agent (A2A) Protocol</h2>
+
+                <p>Google announced A2A on April 9, 2025, at Google Cloud Next, subsequently donating it to the Linux Foundation on June 23, 2025. Over 100 companies support A2A, including AWS, Cisco, Microsoft, Salesforce, SAP, and ServiceNow.</p>
+
+                <h3>Core Capabilities</h3>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Capability</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Capability Discovery</strong></td>
+                            <td>Agents advertise capabilities via JSON "Agent Cards"</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Task Management</strong></td>
+                            <td>Task objects with lifecycle support (immediate or long-running)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Collaboration</strong></td>
+                            <td>Agents exchange context, replies, artifacts, user instructions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>UX Negotiation</strong></td>
+                            <td>Messages include "parts" with specified content types</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>MCP vs A2A: Complementary Protocols</h3>
+
+                <p>The key differentiator between MCP and A2A lies in their scope: MCP connects agents with <strong>tools and data</strong>, while A2A enables agents to collaborate <strong>as agents/users</strong>, not merely as tools. The protocols are designed to complement each other.</p>
+
+                <blockquote>
+                    "Use MCP for tools and A2A for agents." — Protocol design guidance from the A2A specification
+                </blockquote>
+
+                <h2>Memory Systems for Agents</h2>
+
+                <p>Effective memory management remains one of the most challenging aspects of multi-agent system design. Three approaches have emerged as particularly influential.</p>
+
+                <h3>MemGPT</h3>
+
+                <p>Packer et al. introduced MemGPT at NeurIPS 2023, presenting an OS-inspired two-tier memory system:</p>
+
+                <ul>
+                    <li><strong>Tier 1 (Main Context/RAM)</strong>: In-context core memories within the LLM's context window</li>
+                    <li><strong>Tier 2 (External Context/Disk)</strong>: Recall storage and archival storage for long-term persistence</li>
+                </ul>
+
+                <p>The agent uses function calls to manage context window contents, reading from and writing to external data sources as needed. This approach enables virtually unlimited conversation history while maintaining relevant context.</p>
+
+                <h3>A-MEM</h3>
+
+                <p>Xu et al. (NeurIPS 2025) introduced A-MEM, which uses the Zettelkasten method for interconnected knowledge networks with dynamic indexing and linking. Performance benchmarks demonstrate impressive efficiency:</p>
+
+                <ul>
+                    <li><strong>85-93% reduction</strong> in token usage versus baselines</li>
+                    <li>Approximately <strong>1,200 tokens</strong> per memory operation</li>
+                </ul>
+
+                <h3>Mem0</h3>
+
+                <p>Mem0 (2025) dynamically extracts, consolidates, and retrieves salient information using graph-based memory representations with Neo4j. Benchmarks show:</p>
+
+                <ul>
+                    <li><strong>26% relative improvement</strong> in LLM-as-Judge metrics over OpenAI</li>
+                    <li><strong>91% lower p95 latency</strong></li>
+                    <li><strong>&gt;90% token cost savings</strong></li>
+                </ul>
+
+                <h2>Agent Frameworks Comparison</h2>
+
+                <p>Three frameworks have emerged as leading options for production multi-agent systems, each with distinct architectural philosophies.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Framework</th>
+                            <th>Architecture</th>
+                            <th>Strengths</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>LangGraph</strong></td>
+                            <td>Graph-based state machine</td>
+                            <td>Fine-grained control, cycles, streaming</td>
+                            <td>Complex workflows, production systems</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CrewAI</strong></td>
+                            <td>Role-based crews</td>
+                            <td>Intuitive team structure, rapid development</td>
+                            <td>Business process automation</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AutoGen</strong></td>
+                            <td>Conversation-centric</td>
+                            <td>Flexible dialogue patterns, code execution</td>
+                            <td>Research, iterative problem-solving</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>LangGraph Deep Dive</h3>
+
+                <p>LangGraph distinguishes itself through cyclic graph support, enabling iterative refinement workflows impossible in DAG-based systems. Key features include:</p>
+
+                <ul>
+                    <li>Checkpointing for conversation continuity across sessions</li>
+                    <li>Human-in-the-loop via the <code>interrupt()</code> primitive</li>
+                    <li>Swarm-style multi-agent handoffs via <code>langgraph-swarm</code></li>
+                </ul>
+
+                <h3>CrewAI Production Metrics</h3>
+
+                <p>CrewAI uses a Role-Goal-Backstory Framework with YAML configuration for rapid crew definition. Production deployments have demonstrated significant results:</p>
+
+                <ul>
+                    <li>PwC boosted code-generation accuracy from <strong>10% to 70%</strong></li>
+                    <li>Approximately <strong>90% reduction</strong> in processing time for back-office automation</li>
+                </ul>
+
+                <h3>AutoGen v0.4 Architecture</h3>
+
+                <p>Microsoft's AutoGen (v0.4) provides a layered API structure:</p>
+
+                <ul>
+                    <li><strong>Core API</strong>: Event-driven asynchronous messaging</li>
+                    <li><strong>AgentChat API</strong>: Rapid prototyping with pre-built agent types</li>
+                    <li><strong>Extensions API</strong>: LLM clients, tools, and code execution environments</li>
+                </ul>
+
+                <h2>Coordination and Failure Handling</h2>
+
+                <p>The MAST Taxonomy (Cemri et al., 2025) provides the most comprehensive analysis of multi-agent system failure modes, identifying <strong>14 unique failure modes across 3 categories</strong>:</p>
+
+                <h3>Failure Categories</h3>
+
+                <ol>
+                    <li><strong>Specification Issues</strong>: Poor task decomposition, inadequate role definition</li>
+                    <li><strong>Inter-Agent Misalignment</strong>: Communication breakdowns, memory management failures</li>
+                    <li><strong>Task Verification Problems</strong>: Incorrect output verification (13.48% of observed failures)</li>
+                </ol>
+
+                <div class="info-box">
+                    <div class="info-box-title"><i class="fas fa-chart-line"></i> Key Finding</div>
+                    <p>With the same underlying model, MAS system workflow and prompt changes achieved maximum improvements of <strong>15.6%</strong>. This suggests that architectural decisions matter significantly, even when model capabilities are held constant.</p>
+                </div>
+
+                <h2>Production Benchmarks</h2>
+
+                <h3>AgentBench</h3>
+
+                <p>AgentBench (Liu et al., ICLR 2024) established the first comprehensive LLM-as-Agent benchmark across 8 environments. The study identified main failure reasons as:</p>
+
+                <ul>
+                    <li>Poor long-term reasoning</li>
+                    <li>Suboptimal decision-making under uncertainty</li>
+                    <li>Instruction following degradation in extended interactions</li>
+                </ul>
+
+                <h3>MultiAgentBench</h3>
+
+                <p>MultiAgentBench (Zhu et al., March 2025) provides updated benchmarking across contemporary models:</p>
+
+                <ul>
+                    <li>GPT-4o-mini achieves highest average task score</li>
+                    <li>Graph structure performs best in research scenarios</li>
+                    <li>Cognitive planning improves milestone achievement by 3%</li>
+                </ul>
+
+                <h2>Implementation Recommendations</h2>
+
+                <p>Based on the research surveyed, we offer the following recommendations for production multi-agent system deployment:</p>
+
+                <ol>
+                    <li><strong>Start with star architecture</strong> for initial deployments, scaling to hierarchical patterns as complexity grows</li>
+                    <li><strong>Implement MCP for tool integration</strong> and prepare for A2A adoption as the protocol matures</li>
+                    <li><strong>Choose memory systems based on use case</strong>: MemGPT for conversational agents, A-MEM for knowledge-intensive tasks, Mem0 for graph-structured domains</li>
+                    <li><strong>Use LangGraph for production systems</strong> requiring fine-grained control; CrewAI for rapid business automation prototyping</li>
+                    <li><strong>Budget 15-20% of development time</strong> for failure handling and recovery mechanisms</li>
+                </ol>
+
+                <h2>References</h2>
+
+                <ul>
+                    <li>Wu et al. (2023). "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation." arXiv:2308.08155</li>
+                    <li>Packer et al. (2023). "MemGPT: Towards LLMs as Operating Systems." NeurIPS 2023</li>
+                    <li>Xu et al. (2025). "A-MEM: Agentic Memory for LLM Agents." NeurIPS 2025</li>
+                    <li>Liu et al. (2024). "Multi-Agent Systems Survey." arXiv</li>
+                    <li>Chen et al. (2024). "LLM Agent Architectures." arXiv</li>
+                    <li>Cemri et al. (2025). "MAST: Multi-Agent System Taxonomy."</li>
+                    <li>Zhu et al. (2025). "MultiAgentBench." arXiv</li>
+                </ul>
+            </div>
+        </article>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Tragro Pte. Ltd. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
